@@ -204,6 +204,56 @@
   align-items: start;
 }
 
+.findingBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.badgeReviewAccepted {
+  color: var(--submitted);
+  background: var(--submitted-bg);
+}
+
+.badgeReviewDismissed {
+  color: var(--muted);
+  background: #eceae4;
+}
+
+.findingActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.acceptButton,
+.dismissButton {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  background: var(--surface);
+}
+
+.acceptButton:disabled,
+.dismissButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.acceptButton {
+  color: var(--submitted);
+  border-color: #b8dcc8;
+  background: var(--submitted-bg);
+}
+
+.dismissButton {
+  color: var(--muted);
+}
+
 .findingMessage {
   margin: 0;
   font-family: ui-sans-serif, system-ui, sans-serif;

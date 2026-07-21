@@ -25,10 +25,15 @@ export function groupFindingsByStatus(
   return grouped;
 }
 
-export function countAttentionFindings(findings: Finding[]): number {
-  return findings.filter((finding) =>
+export function isPendingAttentionFinding(finding: Finding): boolean {
+  return (
     ATTENTION_FINDING_STATUSES.includes(
       finding.status as AttentionFindingStatus,
-    ),
-  ).length;
+    ) && finding.reviewStatus === "pending"
+  );
+}
+
+/** Attention findings the lawyer has not yet accepted or dismissed. */
+export function countPendingAttentionFindings(findings: Finding[]): number {
+  return findings.filter(isPendingAttentionFinding).length;
 }

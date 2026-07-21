@@ -11,6 +11,21 @@ export type FindingStatus = "missing" | "failed" | "uncertain" | "passed";
 
 export type ReviewStatus = "pending" | "accepted" | "dismissed";
 
+/** Lawyer decision on a finding (excludes pending). */
+export type LawyerReviewDecision = Exclude<ReviewStatus, "pending">;
+
+export type UpdateFindingReviewResult =
+  | { kind: "updated"; findingId: string; reviewStatus: LawyerReviewDecision }
+  | { kind: "case_not_found" }
+  | { kind: "finding_not_found" }
+  | { kind: "already_reviewed"; reviewStatus: ReviewStatus };
+
+export function isLawyerReviewDecision(
+  value: string,
+): value is LawyerReviewDecision {
+  return value === "accepted" || value === "dismissed";
+}
+
 export type ChecklistItemStatus = "submitted" | "missing";
 
 export interface ChecklistCriterion {

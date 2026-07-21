@@ -2,7 +2,8 @@ import type {
   CaseDocument,
   CaseRecord,
   Finding,
-  ReviewStatus,
+  LawyerReviewDecision,
+  UpdateFindingReviewResult,
 } from "@/lib/domain/types";
 import type {
   CaseRepository,
@@ -63,20 +64,31 @@ export class InMemoryCaseRepository implements CaseRepository {
   async updateFindingReviewStatus(
     caseId: string,
     findingId: string,
-    reviewStatus: ReviewStatus,
-  ): Promise<Finding | null> {
+    reviewStatus: LawyerReviewDecision,
+  ): Promise<UpdateFindingReviewResult> {
     const state = this.cases.get(caseId);
     if (!state) {
-      return null;
+      return { kind: "case_not_found" };
     }
 
     const finding = state.findings.find((item) => item.id === findingId);
     if (!finding) {
-      return null;
+      return { kind: "finding_not_found" };
+    }
+
+    if (finding.reviewStatus !== "pending") {
+      return {
+        kind: "already_reviewed",
+        reviewStatus: finding.reviewStatus,
+      };
     }
 
     finding.reviewStatus = reviewStatus;
-    return finding;
+    return {
+      kind: "updated",
+      findingId: finding.id,
+      reviewStatus,
+    };
   }
 }
 

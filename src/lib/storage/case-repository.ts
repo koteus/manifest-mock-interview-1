@@ -2,7 +2,8 @@ import type {
   CaseDocument,
   CaseRecord,
   Finding,
-  ReviewStatus,
+  LawyerReviewDecision,
+  UpdateFindingReviewResult,
 } from "@/lib/domain/types";
 
 export interface SeededCase {
@@ -24,6 +25,6 @@ export interface CaseRepository {
   updateFindingReviewStatus(
     caseId: string,
     findingId: string,
-    reviewStatus: ReviewStatus,
-  ): Promise<Finding | null>;
+    reviewStatus: LawyerReviewDecision,
+  ): Promise<UpdateFindingReviewResult>;
 }

@@ -2,112 +2,26 @@
 
 import { useMemo, useState, useTransition } from "react";
 
-import { parseCaseApiResponse } from "@/lib/case/case-api-response";
-import { buildCategoryLabelLookup, categoryLabel } from "@/lib/case/category-labels";
+import {
+  CaseApiError,
+  fetchCaseView,
+  readCaseApiResponse,
+} from "@/lib/case/fetch-case-view";
+import { buildCategoryLabelLookup } from "@/lib/case/category-labels";
 import { buildCriterionLabelLookup } from "@/lib/case/criterion-labels";
 import {
   ATTENTION_FINDING_STATUSES,
-  countAttentionFindings,
+  countPendingAttentionFindings,
   groupFindingsByStatus,
 } from "@/lib/case/group-findings";
 import type {
   CaseApiResponse,
   ChecklistCategory,
-  DocumentCategory,
   Finding,
-  FindingStatus,
+  LawyerReviewDecision,
 } from "@/lib/domain/types";
+import { FindingGroup } from "./FindingGroup";
 import styles from "../page.module.css";
-
-function findingFilename(
-  finding: Finding,
-  documents: CaseApiResponse["documents"],
-): string | null {
-  if (!finding.documentId) {
-    return null;
-  }
-  return (
-    documents.find((document) => document.id === finding.documentId)?.filename ??
-    null
-  );
-}
-
-function badgeClass(status: FindingStatus): string {
-  switch (status) {
-    case "missing":
-      return styles.badgeMissing;
-    case "failed":
-      return styles.badgeFailed;
-    case "uncertain":
-      return styles.badgeUncertain;
-    case "passed":
-      return styles.badgeSubmitted;
-    default: {
-      const exhaustive: never = status;
-      return exhaustive;
-    }
-  }
-}
-
-function FindingGroup({
-  title,
-  findings,
-  documents,
-  categoryLabels,
-  criterionLabel,
-}: {
-  title: string;
-  findings: Finding[];
-  documents: CaseApiResponse["documents"];
-  categoryLabels: Map<DocumentCategory, string>;
-  criterionLabel: (categoryId: DocumentCategory, criterionId: string) => string;
-}) {
-  return (
-    <section className={styles.findingGroup} aria-label={title}>
-      <h3 className={styles.findingGroupTitle}>
-        {title} <span className={styles.count}>({findings.length})</span>
-      </h3>
-      {findings.length === 0 ? (
-        <p className={styles.empty}>None.</p>
-      ) : (
-        <ul className={styles.list}>
-          {findings.map((finding) => {
-            const filename = findingFilename(finding, documents);
-
-            return (
-              <li key={finding.id} className={styles.findingRow}>
-                <div className={styles.findingHeader}>
-                  <div className={styles.rowMain}>
-                    <span className={styles.rowLabel}>
-                      {categoryLabel(finding.category, categoryLabels)} ·{" "}
-                      {criterionLabel(finding.category, finding.criterionId)}
-                    </span>
-                    <span className={styles.rowDetail}>
-                      {filename
-                        ? `File: ${filename}`
-                        : "No file linked (category missing)"}
-                    </span>
-                  </div>
-                  <span
-                    className={`${styles.badge} ${badgeClass(finding.status)}`}
-                  >
-                    {finding.status}
-                  </span>
-                </div>
-                <p className={styles.findingMessage}>{finding.message}</p>
-                {finding.evidence ? (
-                  <blockquote className={styles.evidence}>
-                    {finding.evidence}
-                  </blockquote>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
 
 export function FindingsPanel({
   initialFindings,
@@ -120,7 +34,11 @@ export function FindingsPanel({
 }) {
   const [findings, setFindings] = useState(initialFindings);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [reviewingFindingId, setReviewingFindingId] = useState<string | null>(
+    null,
+  );
+  const [isReviewPending, startReviewTransition] = useTransition();
+  const [isRunPending, startRunTransition] = useTransition();
 
   const categoryLabels = useMemo(
     () => buildCategoryLabelLookup(checklistCategories),
@@ -135,36 +53,80 @@ export function FindingsPanel({
     () => groupFindingsByStatus(findings),
     [findings],
   );
-  const attentionCount = useMemo(
-    () => countAttentionFindings(findings),
+  const pendingAttentionCount = useMemo(
+    () => countPendingAttentionFindings(findings),
     [findings],
   );
 
+  const hasReviewedFindings = useMemo(
+    () => findings.some((finding) => finding.reviewStatus !== "pending"),
+    [findings],
+  );
+
+  function applyFindingsFromView(view: CaseApiResponse) {
+    setFindings(view.findings);
+  }
+
+  async function refreshFindings() {
+    const view = await fetchCaseView();
+    applyFindingsFromView(view);
+  }
+
   function runReview() {
+    if (
+      hasReviewedFindings &&
+      !window.confirm(
+        "Re-running AI review will replace the current findings and clear your accept/dismiss decisions. Continue?",
+      )
+    ) {
+      return;
+    }
+
     setError(null);
-    startTransition(async () => {
+    startRunTransition(async () => {
       try {
         const response = await fetch("/api/review/run", { method: "POST" });
-        const payload: unknown = await response.json();
-
-        if (!response.ok) {
-          const message =
-            typeof payload === "object" &&
-            payload !== null &&
-            "error" in payload &&
-            typeof payload.error === "string"
-              ? payload.error
-              : "Review request failed.";
-          throw new Error(message);
-        }
-
-        const parsed = parseCaseApiResponse(payload);
-        setFindings(parsed.findings);
+        const view = await readCaseApiResponse(response);
+        applyFindingsFromView(view);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Review request failed.");
       }
     });
   }
+
+  function reviewFinding(findingId: string, reviewStatus: LawyerReviewDecision) {
+    setError(null);
+    setReviewingFindingId(findingId);
+    startReviewTransition(async () => {
+      try {
+        const response = await fetch(`/api/findings/${findingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reviewStatus }),
+        });
+        const view = await readCaseApiResponse(response);
+        applyFindingsFromView(view);
+      } catch (err) {
+        if (
+          err instanceof CaseApiError &&
+          (err.status === 404 || err.status === 409)
+        ) {
+          try {
+            await refreshFindings();
+          } catch {
+            // Fall through to show the original error.
+          }
+        }
+        setError(
+          err instanceof Error ? err.message : "Failed to update finding.",
+        );
+      } finally {
+        setReviewingFindingId(null);
+      }
+    });
+  }
+
+  const isBusy = isReviewPending || isRunPending;
 
   return (
     <section className={styles.section} aria-labelledby="findings-heading">
@@ -172,8 +134,8 @@ export function FindingsPanel({
         AI findings
       </h2>
       <p className={styles.sectionLead}>
-        Grouped as missing, failed, or uncertain. Passed checks are kept in the
-        API response but hidden here so the lawyer can focus on issues.
+        Grouped as missing, failed, or uncertain. Accept or dismiss each finding
+        to record your review for this session.
       </p>
 
       <div className={styles.actions}>
@@ -181,9 +143,9 @@ export function FindingsPanel({
           type="button"
           className={styles.primaryButton}
           onClick={runReview}
-          disabled={isPending}
+          disabled={isBusy}
         >
-          {isPending
+          {isRunPending
             ? "Running AI review…"
             : findings.length > 0
               ? "Re-run AI review"
@@ -199,8 +161,8 @@ export function FindingsPanel({
       ) : (
         <>
           <p className={styles.sectionLead}>
-            {attentionCount} issue{attentionCount === 1 ? "" : "s"} needing
-            attention.
+            {pendingAttentionCount} issue
+            {pendingAttentionCount === 1 ? "" : "s"} still needing your review.
           </p>
           {ATTENTION_FINDING_STATUSES.map((status) => (
             <FindingGroup
@@ -210,6 +172,8 @@ export function FindingsPanel({
               documents={documents}
               categoryLabels={categoryLabels}
               criterionLabel={criterionLabel}
+              reviewingFindingId={reviewingFindingId}
+              onReview={reviewFinding}
             />
           ))}
         </>
