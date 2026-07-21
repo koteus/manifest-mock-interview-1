@@ -1,0 +1,19 @@
+{
+  "id": "demo-case",
+  "clientName": "Jordan Lee",
+  "visaType": "Visitor Visa (B-2)",
+  "documents": [
+    {
+      "filename": "passport.txt",
+      "declaredCategory": "passport"
+    },
+    {
+      "filename": "visa_application_form.txt",
+      "declaredCategory": "visa_application_form"
+    },
+    {
+      "filename": "proof_of_employment.txt",
+      "declaredCategory": "proof_of_employment"
+    }
+  ]
+}

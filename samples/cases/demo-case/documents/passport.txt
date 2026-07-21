@@ -1,0 +1,18 @@
+UNITED STATES OF AMERICA
+PASSPORT
+
+Type: P
+Country Code: USA
+Passport No: 441928337
+
+Surname: LEE
+Given Names: ALEXANDER
+Nationality: UNITED STATES OF AMERICA
+Date of Birth: 14 MAR 1988
+Sex: M
+Place of Birth: CALIFORNIA, U.S.A.
+
+Date of Issue: 02 JAN 2014
+Date of Expiry: 01 JAN 2024
+
+Authority: U.S. DEPARTMENT OF STATE

@@ -1,0 +1,30 @@
+:root {
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --ink: #1c1b19;
+  --muted: #5c574e;
+  --line: #d9d3c7;
+  --submitted: #1f6b4a;
+  --submitted-bg: #e5f3ec;
+  --missing: #8a3b12;
+  --missing-bg: #f8ebe3;
+  --accent: #243b55;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
