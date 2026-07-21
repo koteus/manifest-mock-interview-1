@@ -56,7 +56,7 @@ export interface ChecklistCategoryStatus {
   filename: string | null;
 }
 
-/** Stable API payload for the lawyer case view. Findings start empty in slice 1. */
+/** Stable API payload for the lawyer case view. Findings filled by AI review. */
 export interface CaseApiResponse {
   case: CaseRecord;
   checklist: {

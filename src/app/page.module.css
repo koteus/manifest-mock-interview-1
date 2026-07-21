@@ -109,6 +109,16 @@
   background: var(--missing-bg);
 }
 
+.badgeFailed {
+  color: #7a1f2b;
+  background: #f7e4e7;
+}
+
+.badgeUncertain {
+  color: #6b4f00;
+  background: #f4eccf;
+}
+
 .twoCol {
   display: grid;
   gap: 1.5rem;
@@ -135,4 +145,80 @@
   color: var(--muted);
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.9rem;
+}
+
+.actions {
+  margin-top: 1rem;
+}
+
+.primaryButton {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.error {
+  margin: 0.75rem 0 0;
+  color: #7a1f2b;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem;
+}
+
+.findingGroup {
+  margin-top: 1.25rem;
+}
+
+.findingGroupTitle {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+
+.count {
+  color: var(--muted);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+}
+
+.findingRow {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.findingHeader {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.findingMessage {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.evidence {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-left: 3px solid var(--line);
+  background: #faf8f3;
+  color: var(--muted);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
 }
